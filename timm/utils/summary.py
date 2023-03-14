@@ -35,6 +35,7 @@ def update_summary(
         lr=None,
         write_header=False,
         log_wandb=False,
+        tensorboard_writer=False,
 ):
     rowd = OrderedDict(epoch=epoch)
     rowd.update([('train_' + k, v) for k, v in train_metrics.items()])
@@ -43,6 +44,12 @@ def update_summary(
         rowd['lr'] = lr
     if log_wandb:
         wandb.log(rowd)
+    if tensorboard_writer:
+        import torch
+        for k, v in rowd.items():
+            if isinstance(v, float):
+                tensorboard_writer.add_scalar(k, v, epoch)
+
     with open(filename, mode='a') as cf:
         dw = csv.DictWriter(cf, fieldnames=rowd.keys())
         if write_header:  # first iteration (epoch == 1 can't be used)
